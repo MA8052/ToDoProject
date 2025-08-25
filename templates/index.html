@@ -1,0 +1,193 @@
+
+
+{% load static tailwind_tags %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+        {% block title %}TODO App{% endblock %}
+</title>
+    <link rel="icon" type="image/x-icon" href="{% static 'docs/images/logo/taskIcon.png' %}">
+
+    {% tailwind_css %}
+
+</head>
+<body class="bg-indigo-400">
+
+<audio controls="controls" id="myaudio" hidden>
+        <source src="{% static 'docs/audios/notification.mp3' %}" type="audio/mpeg" />
+        Your browser does not support the audio element.
+</audio>
+
+    <h1 class="text-4xl text-center font-bold p-6">📋 My tasks</h1>
+
+ <form  method="post" action="{%  url  'AddTask' %}" class="p-4">
+    {% csrf_token %}
+    <div class="md:relative left-1/4 grid md:grid-cols-6 bg-white max-w-3xl p-5 focus-within:border-2 rounded-sm hover:border-2">
+        <div class="col-start-1">
+            <label for="Task1" class="block text-lg font-normal text-gray-900 dark:text-white">➕ Add a task</label>
+        </div>
+        <div class="col-start-2 col-end-9">
+            {{ form.Task1 }}
+        </div>
+        <div class="col-start-10">
+            <input type="submit" class='block text-lg' value="➡️"/>
+        </div>
+    </div>
+ 
+</form>
+ <h1 id="HeadToDo" class="text-lg text-center p-4"></h1>
+
+ <ul id="myUnorderedList_todo">
+    {% for task in taskList %}
+        <li id="{{task.id}}">
+            <div class="md:relative left-1/4 grid md:grid-cols-2 bg-white max-w-3xl p-4 mb-1 ml-4 mr-4 rounded-sm hover:border-2">
+             <div class="col-start-1  overflow-y-auto overflow-x-auto h-10">
+                <input type="checkbox"   title="Complete task" name="checkboxName"  onclick="checkFun()">
+                <label id="L{{task.id}}">
+                {{task.id}}-{{task.Task_column}}
+               </label>
+            </div>
+            
+                <div class="col-start-5 ml-60">
+                    <label id="LEdit{{task.id}}">
+                <a href="{% url 'TaskEdit' task.id %}" title="Edit task"><img src="{% static 'docs/images/logo/EditButton.png' %}" alt="Edit"></a>
+            </label>
+            </div>
+                 <div class="col-start-6">
+                    <label id="LDelete{{task.id}}">
+                <a href="{% url 'TaskDelete' task.id %}" title="Delete task"><img src="{% static 'docs/images/logo/DeleteButton.png' %}" alt="Delete"></a>
+                   </label>
+               </div>
+         </div>
+    </li>
+
+   
+    {% endfor %}
+</ul>
+
+
+<h1 id="comp" class="text-lg text-center p-4"></h1>
+
+<ul id='myUnorderedList_comp' ></ul>
+
+<script>
+
+
+    var HeadToDo=document.getElementById('HeadToDo');
+   var comp=document.getElementById('comp');
+
+   var myUnorderedListToDo=document.getElementById('myUnorderedList_todo');
+   var listitemsToDo=myUnorderedListToDo.querySelectorAll('li');
+
+    if(listitemsToDo.length>0)
+    HeadToDo.innerHTML="To Do "+listitemsToDo.length;
+    else
+    HeadToDo.innerHTML="No tasks defined";
+
+    var counter_comp=1;
+    var counter_todo=null;
+function checkFun()
+{   
+    var myaudio=document.getElementById('myaudio');
+    var myUnorderedList_comp=document.getElementById('myUnorderedList_comp');
+    
+    var myUnorderedList_todo=document.getElementById('myUnorderedList_todo');
+    var listitems_todo=myUnorderedList_todo.querySelectorAll('li');
+    var checkbox_Name_todo=document.getElementsByName('checkboxName');
+   
+     if(listitems_todo.length>1)
+    {
+        counter_todo=(listitems_todo.length)-1;
+        HeadToDo.innerHTML="To Do "+counter_todo;
+        comp.innerHTML="Completed "+counter_comp++;
+        counter_todo++;
+    }
+    else
+    {
+    HeadToDo.innerHTML="No tasks defined";
+    comp.innerHTML="Completed "+counter_comp;
+    counter_todo=1;
+    }
+
+
+
+    var Li_id_set;
+    for(let i=0;i<checkbox_Name_todo.length;i++)
+    {
+        
+    
+        if(checkbox_Name_todo[i].checked)
+        {
+           
+            Li_id_set=listitems_todo[i].id;
+            label_todo=document.getElementById("L"+(Li_id_set).toString());
+            label_todo_edit=document.getElementById("LEdit"+(Li_id_set).toString());
+            label_todo_delete=document.getElementById("LDelete"+(Li_id_set).toString());
+            listitems_todo[i].remove();
+        }
+    }
+
+       const li=document.createElement('li');
+       li.innerHTML='<div class="md:relative left-1/4 grid md:grid-cols-2 bg-white max-w-3xl p-4 mb-1 ml-4 mr-4 rounded-sm hover:border-2"><div class="col-start-1  overflow-y-auto overflow-x-auto h-10"><input type="checkbox" title="Complete task" name="checkboxName1" onclick="un_checkFun()" checked><label class="line-through" id="L'+Li_id_set+'">'+label_todo.innerHTML+'</label></div><div class="col-start-5 ml-60"><label id="LEdit'+Li_id_set+'">'+label_todo_edit.innerHTML+'</label></div><div class="col-start-6"><label id="LDelete'+Li_id_set+'">'+label_todo_delete.innerHTML+'</label></div></div>';
+       li.id=Li_id_set;
+       myUnorderedList_comp.appendChild(li);
+        myaudio.play();
+
+}
+
+var myUnorderedList_todo=document.getElementById('myUnorderedList_todo');
+function un_checkFun()
+{
+    var Li_id_get;
+    var myUnorderedList_comp=document.getElementById('myUnorderedList_comp');
+    var listitems_comp=myUnorderedList_comp.querySelectorAll('li');
+    var checkbox_Name_completed=document.getElementsByName('checkboxName1');
+
+   if(listitems_comp.length>1)
+   {
+    counter_comp=(listitems_comp.length)-1;
+    HeadToDo.innerHTML="To Do "+counter_todo++;
+    comp.innerHTML="Completed "+counter_comp;
+    counter_comp++;
+    }
+    else
+    {
+    comp.innerHTML="";
+    HeadToDo.innerHTML="To Do "+counter_todo;
+    counter_comp=1;
+
+    }
+
+
+
+ for(let j=0;j<checkbox_Name_completed.length;j++)
+{
+    if(!(checkbox_Name_completed[j].checked))
+    {
+         Li_id_get=listitems_comp[j].id
+         label_comp=document.getElementById("L"+(Li_id_get).toString());
+         label_comp_edit=document.getElementById("LEdit"+(Li_id_get).toString());
+         label_comp_delete=document.getElementById("LDelete"+(Li_id_get).toString());
+        listitems_comp[j].remove();
+    }
+
+}
+
+       const li=document.createElement('li');
+       li.innerHTML='<div class="md:relative left-1/4 grid md:grid-cols-2 bg-white max-w-3xl p-4 mb-1 ml-4 mr-4 rounded-sm hover:border-2"><div class="col-start-1  overflow-y-auto overflow-x-auto h-10"><input type="checkbox"  title="Complete task" name="checkboxName"  onclick="checkFun()"><label id="L'+Li_id_get+'">'+label_comp.innerHTML+'</label></div> <div class="col-start-5 ml-60"><label id="LEdit'+Li_id_get+'">'+label_comp_edit.innerHTML+'</label></div><div class="col-start-6"><label id="LDelete'+Li_id_get+'">'+label_comp_delete.innerHTML+'</label></div></div>';
+       li.id=Li_id_get;
+       myUnorderedList_todo.appendChild(li);
+
+
+
+}
+
+
+</script>
+
+</body>
+</html>
